@@ -32,28 +32,37 @@
 #import "SKPSMTPMessage.h"
 #import "NSData+Base64Additions.h"
 
+@interface SMTPSenderAppDelegate (Private)
+
+- (void)		initDefaults;
+
+@end
+
 @implementation SMTPSenderAppDelegate
 
 @synthesize window;
 @synthesize textView;
 
-+ (void)initialize {
-    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-    NSMutableDictionary *defaultsDictionary = [NSMutableDictionary dictionaryWithObjectsAndKeys:@"me@example.com", @"fromEmail",
-                                               @"you@example.com", @"toEmail",
-                                               @"smtp.example.com", @"relayHost",
-                                               @"me@example.com", @"login",
-                                               @"SekritSquirrel", @"pass",
-                                               [NSNumber numberWithBool:YES], @"requiredAuth",
-                                               [NSNumber numberWithBool:YES], @"wantsSecure", nil];
-    
-    [userDefaults registerDefaults:defaultsDictionary];
+- (void) initDefaults
+{
+	NSString		*defaultsPath = [[NSBundle mainBundle] pathForResource: @"Defaults" ofType: @"plist"];
+	
+	if (defaultsPath != nil) {
+		NSDictionary	*defaultDefaults = [NSDictionary dictionaryWithContentsOfFile: defaultsPath];
+		
+		if (defaultDefaults != nil) {
+			[[NSUserDefaults standardUserDefaults] registerDefaults: defaultDefaults];
+		}
+	}
 }
-- (void)applicationDidFinishLaunching:(UIApplication *)application {    
-    
-    // Override point for customization after app launch    
+
+- (void) applicationDidFinishLaunching: (UIApplication *) inApplication
+{    
+	[self initDefaults];
+	
     [window makeKeyAndVisible];
 }
+
 - (void)applicationDidBecomeActive:(UIApplication *)application {
     [[NSUserDefaults standardUserDefaults] synchronize];
     [self updateTextView];

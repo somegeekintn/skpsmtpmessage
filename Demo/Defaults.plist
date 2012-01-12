@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>fromEmail</key>
+	<string>me@example.com</string>
+	<key>toEmail</key>
+	<string>you@example.com</string>
+	<key>relayHost</key>
+	<string>smtp.example.com</string>
+	<key>login</key>
+	<string>me@example.com</string>
+	<key>login</key>
+	<string>me@example.com</string>
+	<key>pass</key>
+	<string>SekritSquirrel</string>
+	<key>requiresAuth</key>
+	<true/>
+	<key>wantsSecure</key>
+	<true/>
+</dict>
+</plist>

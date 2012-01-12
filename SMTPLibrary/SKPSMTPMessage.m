@@ -188,43 +188,47 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
 
 - (BOOL)preflightCheckWithError:(NSError **)error {
     
-    CFHostRef host = CFHostCreateWithName(NULL, (CFStringRef)self.relayHost);
-    CFStreamError streamError;
-    
-    if (!CFHostStartInfoResolution(host, kCFHostAddresses, &streamError)) {
-        NSString *errorDomainName;
-        switch (streamError.domain) {
-            case kCFStreamErrorDomainCustom:
-                errorDomainName = @"kCFStreamErrorDomainCustom";
-                break;
-            case kCFStreamErrorDomainPOSIX:
-                errorDomainName = @"kCFStreamErrorDomainPOSIX";
-                break;
-            case kCFStreamErrorDomainMacOSStatus:
-                errorDomainName = @"kCFStreamErrorDomainMacOSStatus";
-                break;
-            default:
-                errorDomainName = [NSString stringWithFormat:@"Generic CFStream Error Domain %ld", streamError.domain];
-                break;
-        }
-        *error = [NSError errorWithDomain:errorDomainName
-                                     code:streamError.error
-                                 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error resolving address.", NSLocalizedDescriptionKey,
-                                           @"Check your SMTP Host name", NSLocalizedRecoverySuggestionErrorKey, nil]];
-        return NO;
-    }
-    Boolean hasBeenResolved;
-    CFHostGetAddressing(host, &hasBeenResolved);
-    if (!hasBeenResolved) {
-        *error = [NSError errorWithDomain:@"SKPSMTPMessageError" code:kSKPSMTPErrorNonExistentDomain userInfo:
-                  [NSDictionary dictionaryWithObjectsAndKeys:@"Error resolving host.", NSLocalizedDescriptionKey,
-                   @"Check your SMTP Host name", NSLocalizedRecoverySuggestionErrorKey, nil]];
-        CFRelease(host);
-        return NO;
-    }
+    CFHostRef		host = CFHostCreateWithName(NULL, (CFStringRef)self.relayHost);
+    CFStreamError	streamError;
+    BOOL			passedPreflight = YES;
+	
+	if (*error != nil) {
+		if (!CFHostStartInfoResolution(host, kCFHostAddresses, &streamError)) {
+			NSString *errorDomainName;
+			switch (streamError.domain) {
+				case kCFStreamErrorDomainCustom:
+					errorDomainName = @"kCFStreamErrorDomainCustom";
+					break;
+				case kCFStreamErrorDomainPOSIX:
+					errorDomainName = @"kCFStreamErrorDomainPOSIX";
+					break;
+				case kCFStreamErrorDomainMacOSStatus:
+					errorDomainName = @"kCFStreamErrorDomainMacOSStatus";
+					break;
+				default:
+					errorDomainName = [NSString stringWithFormat:@"Generic CFStream Error Domain %ld", streamError.domain];
+					break;
+			}
+			*error = [NSError errorWithDomain:errorDomainName
+										 code:streamError.error
+									 userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Error resolving address.", NSLocalizedDescriptionKey,
+											   @"Check your SMTP Host name", NSLocalizedRecoverySuggestionErrorKey, nil]];
+			passedPreflight = NO;
+		}
+		Boolean hasBeenResolved;
+		CFHostGetAddressing(host, &hasBeenResolved);
+		if (!hasBeenResolved) {
+			*error = [NSError errorWithDomain:@"SKPSMTPMessageError" code:kSKPSMTPErrorNonExistentDomain userInfo:
+					  [NSDictionary dictionaryWithObjectsAndKeys:@"Error resolving host.", NSLocalizedDescriptionKey,
+					   @"Check your SMTP Host name", NSLocalizedRecoverySuggestionErrorKey, nil]];
+
+			passedPreflight = NO;
+		}
+	}
     
     CFRelease(host);
-    return YES;
+	
+    return passedPreflight;
 }
 
 

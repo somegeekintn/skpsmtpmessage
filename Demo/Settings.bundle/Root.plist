@@ -90,7 +90,7 @@
 			<key>DefaultValue</key>
 			<string>Sekritsquirrel</string>
 			<key>IsSecure</key>
-			<false/>
+			<true/>
 			<key>Key</key>
 			<string>pass</string>
 			<key>KeyboardType</key>
