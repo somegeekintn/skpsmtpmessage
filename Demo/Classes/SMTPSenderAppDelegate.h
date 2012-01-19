@@ -29,20 +29,15 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <CFNetwork/CFNetwork.h>
 
-#import "SKPSMTPMessage.h"
+@class SMTPViewController;
 
-@class SMTPSenderViewController;
-
-@interface SMTPSenderAppDelegate : NSObject <UIApplicationDelegate, SKPSMTPMessageDelegate> {
-    UIWindow *window;
+@interface SMTPSenderAppDelegate : NSObject <UIApplicationDelegate> 
+{
 }
-@property (nonatomic, retain) IBOutlet UITextView *textView;
-@property (nonatomic, retain) IBOutlet UIWindow *window;
 
-- (IBAction)sendMessage:(id)sender;
-- (void)updateTextView;
+@property (strong, nonatomic) UIWindow				*window;
+@property (strong, nonatomic) SMTPViewController	*viewController;
 
 @end
 

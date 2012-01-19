@@ -29,22 +29,26 @@
 //
 
 #import "SMTPSenderAppDelegate.h"
-#import "SKPSMTPMessage.h"
-#import "NSData+Base64Additions.h"
+#import "SMTPViewController.h"
 
 @interface SMTPSenderAppDelegate (Private)
 
 - (void)		initDefaults;
 
-- (void)		sendVCardMessage;
-- (void)		sendPNGMessage;
-
 @end
 
 @implementation SMTPSenderAppDelegate
 
-@synthesize window;
-@synthesize textView;
+@synthesize window = _window;
+@synthesize viewController = _viewController;
+
+- (void) dealloc
+{
+	self.window = nil;
+	self.viewController = nil;
+
+    [super dealloc];
+}
 
 - (void) initDefaults
 {
@@ -62,116 +66,17 @@
 - (void) applicationDidFinishLaunching: (UIApplication *) inApplication
 {    
 	[self initDefaults];
-	
-    [window makeKeyAndVisible];
+
+	self.window = [[[UIWindow alloc] initWithFrame: [[UIScreen mainScreen] bounds]] autorelease];
+	self.viewController = [[[SMTPViewController alloc] initWithNibName: @"SMTPViewController" bundle: nil] autorelease];
+	self.window.rootViewController = self.viewController;
+	[self.window makeKeyAndVisible];
 }
 
-- (void)applicationDidBecomeActive:(UIApplication *)application {
+- (void) applicationDidBecomeActive: (UIApplication *) inApplication
+{
     [[NSUserDefaults standardUserDefaults] synchronize];
-    [self updateTextView];
-}
-
-- (void)dealloc {
-    [window release];
-    [super dealloc];
-}
-
-- (void)updateTextView {
-    NSMutableString *logText = [[NSMutableString alloc] init];
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    
-    [logText appendString:@"Use the iOS Settings app to change the values below.\n\n"];
-    [logText appendFormat:@"From: %@\n", [defaults objectForKey:@"fromEmail"]];
-    [logText appendFormat:@"To: %@\n", [defaults objectForKey:@"toEmail"]];
-    [logText appendFormat:@"Host: %@\n", [defaults objectForKey:@"relayHost"]];
-    [logText appendFormat:@"Auth: %@\n", ([[defaults objectForKey:@"requiresAuth"] boolValue] ? @"On" : @"Off")];
-    
-    if ([[defaults objectForKey:@"requiresAuth"] boolValue]) {
-        [logText appendFormat:@"Login: %@\n", [defaults objectForKey:@"login"]];
-        [logText appendFormat:@"Password: %@\n", [defaults objectForKey:@"pass"]];
-    }
-    [logText appendFormat:@"Secure: %@\n", [[defaults objectForKey:@"wantsSecure"] boolValue] ? @"Yes" : @"No"];
-    self.textView.text = logText;
-    [logText release];
-
-}
-
-- (IBAction) sendMessage: (id) inSender
-{
-	[self sendPNGMessage];
-}
-
-- (void) sendVCardMessage
-{
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    
-    SKPSMTPMessage *testMsg = [[SKPSMTPMessage alloc] init];
-    testMsg.fromEmail = [defaults objectForKey:@"fromEmail"];
-    testMsg.toEmail = [defaults objectForKey:@"toEmail"];
-    testMsg.bccEmail = [defaults objectForKey:@"bccEmal"];
-    testMsg.relayHost = [defaults objectForKey:@"relayHost"];
-    testMsg.requiresAuth = [[defaults objectForKey:@"requiresAuth"] boolValue];
-    if (testMsg.requiresAuth) {
-        testMsg.login = [defaults objectForKey:@"login"];
-        testMsg.pass = [defaults objectForKey:@"pass"];
-    }
-    testMsg.wantsSecure = [[defaults objectForKey:@"wantsSecure"] boolValue]; // smtp.gmail.com doesn't work without TLS!
-
-    testMsg.subject = @"SMTPMessage Test Message";
-    //testMsg.bccEmail = @"testbcc@test.com";
-    
-    // Only do this for self-signed certs!
-    // testMsg.validateSSLChain = NO;
-    testMsg.delegate = self;
-    [testMsg addTextPart: @"This is a tést messåge."];
-    [testMsg addFilePart: [[NSBundle mainBundle] pathForResource: @"test" ofType: @"vcf"] withMIMEType: @"text/vcard"];
-    [testMsg send];
-
-}
-
-- (void) sendPNGMessage
-{
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    
-    SKPSMTPMessage *testMsg = [[SKPSMTPMessage alloc] init];
-    testMsg.fromEmail = [defaults objectForKey:@"fromEmail"];
-    testMsg.toEmail = [defaults objectForKey:@"toEmail"];
-    testMsg.bccEmail = [defaults objectForKey:@"bccEmal"];
-    testMsg.relayHost = [defaults objectForKey:@"relayHost"];
-    testMsg.requiresAuth = [[defaults objectForKey:@"requiresAuth"] boolValue];
-    if (testMsg.requiresAuth) {
-        testMsg.login = [defaults objectForKey:@"login"];
-        testMsg.pass = [defaults objectForKey:@"pass"];
-    }
-    testMsg.wantsSecure = [[defaults objectForKey:@"wantsSecure"] boolValue]; // smtp.gmail.com doesn't work without TLS!
-
-    testMsg.subject = @"SMTPMessage Test Message";
-    //testMsg.bccEmail = @"testbcc@test.com";
-    
-    // Only do this for self-signed certs!
-    // testMsg.validateSSLChain = NO;
-    testMsg.delegate = self;
-    [testMsg addTextPart: @"This is a tést messåge."];
-    [testMsg addFilePart: [[NSBundle mainBundle] pathForResource: @"closebox" ofType: @"png"] withMIMEType: @"text/vcard"];
-    [testMsg send];
-
-}
-
-- (void)messageSent:(SKPSMTPMessage *)message
-{
-    [message release];
-    self.textView.text  = @"Yay! Message was sent!";
-    //NSLog(@"delegate - message sent");
-}
-
-- (void)messageFailed:(SKPSMTPMessage *)message error:(NSError *)error
-{
-    
-    //self.textView.text = [NSString stringWithFormat:@"Darn! Error: %@, %@", [error code], [error localizedDescription]];
-    self.textView.text = [NSString stringWithFormat:@"Darn! Error!\n%i: %@\n%@", [error code], [error localizedDescription], [error localizedRecoverySuggestion]];
-    [message release];
-    
-    //NSLog(@"delegate - error(%d): %@", [error code], [error localizedDescription]);
+    [self.viewController updateTextView: nil];
 }
 
 @end
