@@ -36,6 +36,9 @@
 
 - (void)		initDefaults;
 
+- (void)		sendVCardMessage;
+- (void)		sendPNGMessage;
+
 @end
 
 @implementation SMTPSenderAppDelegate
@@ -93,50 +96,67 @@
 
 }
 
-- (IBAction)sendMessage:(id)sender {
+- (IBAction) sendMessage: (id) inSender
+{
+	[self sendPNGMessage];
+}
 
+- (void) sendVCardMessage
+{
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     
     SKPSMTPMessage *testMsg = [[SKPSMTPMessage alloc] init];
     testMsg.fromEmail = [defaults objectForKey:@"fromEmail"];
-    
     testMsg.toEmail = [defaults objectForKey:@"toEmail"];
     testMsg.bccEmail = [defaults objectForKey:@"bccEmal"];
     testMsg.relayHost = [defaults objectForKey:@"relayHost"];
-    
     testMsg.requiresAuth = [[defaults objectForKey:@"requiresAuth"] boolValue];
-    
     if (testMsg.requiresAuth) {
         testMsg.login = [defaults objectForKey:@"login"];
-        
         testMsg.pass = [defaults objectForKey:@"pass"];
-
     }
-    
     testMsg.wantsSecure = [[defaults objectForKey:@"wantsSecure"] boolValue]; // smtp.gmail.com doesn't work without TLS!
 
-    
     testMsg.subject = @"SMTPMessage Test Message";
     //testMsg.bccEmail = @"testbcc@test.com";
     
     // Only do this for self-signed certs!
     // testMsg.validateSSLChain = NO;
     testMsg.delegate = self;
-    
-    NSDictionary *plainPart = [NSDictionary dictionaryWithObjectsAndKeys:@"text/plain",kSKPSMTPPartContentTypeKey,
-                               @"This is a tést messåge.",kSKPSMTPPartMessageKey,@"8bit",kSKPSMTPPartContentTransferEncodingKey,nil];
-    
-    NSString *vcfPath = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"vcf"];
-    NSData *vcfData = [NSData dataWithContentsOfFile:vcfPath];
-    
-    NSDictionary *vcfPart = [NSDictionary dictionaryWithObjectsAndKeys:@"text/directory;\r\n\tx-unix-mode=0644;\r\n\tname=\"test.vcf\"",kSKPSMTPPartContentTypeKey,
-                             @"attachment;\r\n\tfilename=\"test.vcf\"",kSKPSMTPPartContentDispositionKey,[vcfData encodeBase64ForData],kSKPSMTPPartMessageKey,@"base64",kSKPSMTPPartContentTransferEncodingKey,nil];
-    
-    testMsg.parts = [NSArray arrayWithObjects:plainPart,vcfPart,nil];
-    
+    [testMsg addTextPart: @"This is a tést messåge."];
+    [testMsg addFilePart: [[NSBundle mainBundle] pathForResource: @"test" ofType: @"vcf"] withMIMEType: @"text/vcard"];
     [testMsg send];
 
 }
+
+- (void) sendPNGMessage
+{
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    
+    SKPSMTPMessage *testMsg = [[SKPSMTPMessage alloc] init];
+    testMsg.fromEmail = [defaults objectForKey:@"fromEmail"];
+    testMsg.toEmail = [defaults objectForKey:@"toEmail"];
+    testMsg.bccEmail = [defaults objectForKey:@"bccEmal"];
+    testMsg.relayHost = [defaults objectForKey:@"relayHost"];
+    testMsg.requiresAuth = [[defaults objectForKey:@"requiresAuth"] boolValue];
+    if (testMsg.requiresAuth) {
+        testMsg.login = [defaults objectForKey:@"login"];
+        testMsg.pass = [defaults objectForKey:@"pass"];
+    }
+    testMsg.wantsSecure = [[defaults objectForKey:@"wantsSecure"] boolValue]; // smtp.gmail.com doesn't work without TLS!
+
+    testMsg.subject = @"SMTPMessage Test Message";
+    //testMsg.bccEmail = @"testbcc@test.com";
+    
+    // Only do this for self-signed certs!
+    // testMsg.validateSSLChain = NO;
+    testMsg.delegate = self;
+    [testMsg addTextPart: @"This is a tést messåge."];
+    [testMsg addFilePart: [[NSBundle mainBundle] pathForResource: @"closebox" ofType: @"png"] withMIMEType: @"text/vcard"];
+    [testMsg send];
+
+}
+
 - (void)messageSent:(SKPSMTPMessage *)message
 {
     [message release];

@@ -86,6 +86,7 @@ extern NSString *kSKPSMTPPartContentTransferEncodingKey;
     NSString *toEmail;
 	NSString *ccEmail;
 	NSString *bccEmail;
+	NSString *body;
     NSArray *parts;
     
     NSOutputStream *outputStream;
@@ -116,6 +117,13 @@ extern NSString *kSKPSMTPPartContentTransferEncodingKey;
     NSTimer *watchdogTimer;
 }
 
+- (void)		addPart: (NSDictionary *) inPart;
+- (void)		addFilePart: (NSString *) inPath
+					withMIMEType: (NSString *) inMIMEType;
+- (void)		addTextPart: (NSString *) inText;
+- (void)		addVCardPart: (NSString *) inPath;
+- (void)		addPNGPart: (NSString *) inPath;
+
 @property(nonatomic, retain) NSString *login;
 @property(nonatomic, retain) NSString *pass;
 @property(nonatomic, retain) NSString *relayHost;
@@ -130,6 +138,7 @@ extern NSString *kSKPSMTPPartContentTransferEncodingKey;
 @property(nonatomic, retain) NSString *toEmail;
 @property(nonatomic, retain) NSString *ccEmail;
 @property(nonatomic, retain) NSString *bccEmail;
+@property(nonatomic, retain) NSString *body;
 @property(nonatomic, retain) NSArray *parts;
 
 @property(nonatomic, assign) NSTimeInterval connectTimeout;
