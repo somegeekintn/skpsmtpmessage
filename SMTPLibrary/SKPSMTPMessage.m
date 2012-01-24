@@ -169,22 +169,31 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
 	[self addPart: textPart];
 }
 
+- (void) addDataPart: (NSData *) inData
+	usingFilename: (NSString *) inFilename
+	andMIMEType: (NSString *) inMIMEType
+{
+    NSDictionary	*filePart;
+	
+	filePart = [NSDictionary dictionaryWithObjectsAndKeys:
+					[NSString stringWithFormat: @"%@;\r\n\tx-unix-mode=0644;\r\n\tname=\"%@\"", inMIMEType, inFilename], kSKPSMTPPartContentTypeKey,
+					[NSString stringWithFormat: @"attachment;\r\n\tfilename=\"%@\"", inFilename], kSKPSMTPPartContentDispositionKey,
+					[inData encodeBase64ForData], kSKPSMTPPartMessageKey,
+					@"base64", kSKPSMTPPartContentTransferEncodingKey, nil];
+
+	[self addPart: filePart];
+}
+
 - (void) addFilePart: (NSString *) inPath
 	withMIMEType: (NSString *) inMIMEType
 {
-    NSDictionary	*filePart;
     NSData			*fileData;
 	NSString		*filename;
 	
 	filename = [inPath lastPathComponent];
 	fileData = [NSData dataWithContentsOfFile: inPath];
-	filePart = [NSDictionary dictionaryWithObjectsAndKeys:
-					[NSString stringWithFormat: @"%@;\r\n\tx-unix-mode=0644;\r\n\tname=\"%@\"", inMIMEType, filename], kSKPSMTPPartContentTypeKey,
-					[NSString stringWithFormat: @"attachment;\r\n\tfilename=\"%@\"", filename], kSKPSMTPPartContentDispositionKey,
-					[fileData encodeBase64ForData], kSKPSMTPPartMessageKey,
-					@"base64", kSKPSMTPPartContentTransferEncodingKey, nil];
 
-	[self addPart: filePart];
+	[self addDataPart: fileData usingFilename: filename andMIMEType: inMIMEType];
 }
 
 - (void) addVCardPart: (NSString *) inPath
@@ -951,7 +960,7 @@ NSString *kSKPSMTPPartContentTransferEncodingKey = @"kSKPSMTPPartContentTransfer
     
     [message appendString:@"\r\n.\r\n"];
     
-    DLog(@"C: %@", message);
+//    DLog(@"C: %@", message);
     if (CFWriteStreamWriteFully((CFWriteStreamRef)outputStream, (const uint8_t *)[message UTF8String], [message lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) < 0)
     {
         [message release];

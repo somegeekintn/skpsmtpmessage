@@ -118,6 +118,9 @@ extern NSString *kSKPSMTPPartContentTransferEncodingKey;
 }
 
 - (void)		addPart: (NSDictionary *) inPart;
+- (void)		addDataPart: (NSData *) inData
+					usingFilename: (NSString *) inFilename
+					andMIMEType: (NSString *) inMIMEType;
 - (void)		addFilePart: (NSString *) inPath
 					withMIMEType: (NSString *) inMIMEType;
 - (void)		addTextPart: (NSString *) inText;
